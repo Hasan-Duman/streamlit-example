@@ -1,38 +1,48 @@
-from collections import namedtuple
-import altair as alt
-import math
 import pandas as pd
+import numpy as np
 import streamlit as st
+import yfinance as yf
 
-"""
-# Welcome to Streamlit!
+import datetime as dt
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
+liste={
+    "BTC":"BTC-USD",
+    "ETH":"ETH-USD",
+    "XRP":"XRP-USD",
+    "SHIB":"SHIB-USD"
+}
 
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+sec=st.sidebar.selectbox("KriptoPara",liste.keys())
+ticker=liste.get(sec)
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+def veri(ticker,baslangic="2004-01-01",bitis=dt.datetime.today().date()):
+    df=yf.download(ticker,baslangic,bitis)
+    df=df['Close']
+    st.line_chart(df)
 
 
-with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+col1,col2,col3=st.columns(3)
+with col1:
+    son30 = st.button("30Gün")
+with col2:
+    son90 = st.button("90Gün")
+with col3:
+    son360 = st.button("Yıl")
 
-    Point = namedtuple('Point', 'x y')
-    data = []
+bugun=dt.datetime.today().date()
 
-    points_per_turn = total_points / num_turns
 
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
+if son30:
+    baslangic=bugun-dt.timedelta(days=30)
+    bitis=bugun
+elif son90:
+    baslangic = bugun - dt.timedelta(days=90)
+    bitis = bugun
+elif son360:
+    baslangic = bugun - dt.timedelta(days=365)
+    bitis = bugun
+else:
+    baslangic = "2004-01-01"
+    bitis = bugun
 
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+veri(ticker,baslangic,bitis)
